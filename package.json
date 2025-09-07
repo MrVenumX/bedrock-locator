@@ -1,0 +1,22 @@
+{
+  "name": "bedrock-locator",
+  "version": "1.0.0",
+  "description": "Minecraft: Bedrock Edition tool for locate player on the server",
+  "bin": "bin/bedrock-locator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrVenumX/bedrock-locator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MrVenumX/bedrock-locator/issues"
+  },
+  "homepage": "https://github.com/MrVenumX/bedrock-locator#readme",
+  "dependencies": {
+    "bedrock-protocol": "^3.48.1",
+    "commander": "^14.0.0"
+  }
+}
