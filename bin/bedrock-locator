@@ -1,2 +1,73 @@
 #!/usr/bin/env node
-console.debug('not implemented yet.')
+
+const { Command } = require('commander');
+const { createClient } = require('bedrock-protocol');
+const package = require('../package.json');
+
+const program = new Command();
+
+program
+  .name(package.name)
+  .description(package.description)
+  .version(package.version)
+  .option('-H, --server-host <string>', 'Server host to connect')
+  .option('-P, --server-port <number>', 'Server port to connect')
+  .option(
+    '-U, --username <string>',
+    'Use custom name for bot. It also affect on Xbox auth require re-auth',
+    'botloc',
+  )
+  .option('-F, --offline <boolean>', 'Join to server without Xbox', false)
+  .action((options) => {
+    if (typeof options.serverHost !== 'string')
+      throw new Error('--server-host required by command');
+    if (typeof options.serverPort !== 'string')
+      throw new Error('--server-port required by command');
+    start(
+      options.serverHost,
+      parseInt(options.serverPort),
+      options.offline,
+      options.username,
+    );
+  });
+
+program.parse();
+
+function start(host, port, offline, username) {
+  const records = new Map();
+
+  const client = createClient({
+    host,
+    port,
+    username,
+    offline,
+  });
+
+  client.on('connect', () => console.info('Connected to the server'));
+  client.on('packet', ({ data }) => {
+    if (data.name === 'player_list') {
+      Array.from(data.params.records.records).forEach((v) => {
+        if (data.params.records.type === 'add') records.set(v.uuid, v);
+        if (data.params.records.type === 'remove') records.delete(v.uuid);
+      });
+    }
+
+    if (data.name === 'player_location') {
+      if (data.params.type === 'coordinates')
+        for (const [k, v] of records.entries()) {
+          const { x, y, z } = data.params.position;
+          if (
+            data.params.entity_unique_id ===
+            ((v.entity_unique_id << 1n) ^ (v.entity_unique_id >> 63n))
+          )
+            console.info(
+              'Located %s at %d %d %d',
+              v.username,
+              Math.floor(x),
+              Math.floor(y),
+              Math.floor(z),
+            );
+        }
+    }
+  });
+}
